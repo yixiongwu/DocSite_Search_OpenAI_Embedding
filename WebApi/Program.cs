@@ -129,8 +129,9 @@ app.MapPost("/recommendations", async (RecommendationRequest request) =>
             var distance = cosine.Distance(it.Embedding?.ToArray(), item.Embedding?.ToArray());
             recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.Title, distance));
         });
-        return new Recommendation(item.Id, item.Title,
-            recommendationResponseItems.OrderByDescending(it => it.Distance).Take(count).ToList());
+        return new Recommendation(item.Id,
+            item.Title,
+            recommendationResponseItems.Where(it => !it.Title.Contains("open-cloud")).OrderByDescending(it => it.Distance).Take(count).ToList());
     }
     else
     {
