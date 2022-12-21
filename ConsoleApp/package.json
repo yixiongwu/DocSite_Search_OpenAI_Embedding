@@ -29,6 +29,7 @@
     ]
   },
   "dependencies": {
+    "dotenv": "^16.0.3",
     "unified": "^10.1.2"
   }
 }

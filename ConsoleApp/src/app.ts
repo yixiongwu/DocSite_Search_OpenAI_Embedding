@@ -1,5 +1,8 @@
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 function walkDir(dir: string, callback: Function) {
     fs.readdirSync(dir).forEach(f => {
@@ -19,9 +22,9 @@ class DocItem {
 }
 
 async function main() {
-    let dir = "C:\\GitHub2\\creator-docs-internal\\content\\en-us\\docs";
+    let docPath = process.env.DOC_PATH;
     let docItems: Array<DocItem> = new Array<DocItem>();
-    walkDir(dir, (fileName: string, filePath: string) => {
+    walkDir(docPath, (fileName: string, filePath: string) => {
         if (path.extname(fileName).toLowerCase() == ".md") {
             let content = fs.readFileSync(filePath).toString();
             docItems.push(new DocItem(path.basename(fileName), content));
