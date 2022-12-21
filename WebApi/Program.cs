@@ -71,6 +71,17 @@ app.MapPost("/embedding", async (EmbeddingRequest request) =>
     return request.Items.Count;
 });
 
+app.MapGet("/analyzingDocItems", async () =>
+{
+    var items = await Util.Load(@"../ConsoleApp/docItems.json");
+    return new
+    {
+        items.Count,
+        CountMoreThan8000 = items.Count(it => it.Content.Length >= 8000),
+        CountMoreThan8000Ratios = items.Where(it => it.Content.Length >= 8000).Select(it => Math.Round((decimal)it.Content.Length / 8000, 2)).ToList()
+    };
+});
+
 app.MapGet("/embeddingDocItems", async () =>
 {
     var openai = app.Services.GetService<IOpenAIService>() ?? throw new ApplicationException("OpenAI service is null");
