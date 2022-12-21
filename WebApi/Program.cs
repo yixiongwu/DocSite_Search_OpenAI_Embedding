@@ -71,8 +71,37 @@ app.MapPost("/embedding", async (EmbeddingRequest request) =>
     return request.Items.Count;
 });
 
+app.MapGet("/embeddingDocItems", async () =>
+{
+    var openai = app.Services.GetService<IOpenAIService>() ?? throw new ApplicationException("OpenAI service is null");
+
+    var items = await Util.Load(@"../ConsoleApp/docItems.json");
+    var input = items.Select(it => it.Content.Substring(0, it.Content.Length > 8000 ? 8000 : it.Content.Length)).ToList();
+    var result = await openai.Embeddings.CreateEmbedding(new EmbeddingCreateRequest
+    {
+        Input = input,
+        Model = Model
+    });
+
+    Guard.Argument(result, nameof(result)).NotNull();
+    Guard.Argument(result.Successful, nameof(result.Successful)).True($"Code:{result.Error?.Code},Message:{result.Error?.Message}");
+
+    for (int i = 0; i < items.Count; i++)
+    {
+        var item = items[i];
+        item.Id = i;
+        item.Embedding = result.Data[i].Embedding;
+    }
+
+    await Util.Save(items);
+    return items.Count;
+});
+
 app.MapPost("/search", async (SearchRequest request) =>
 {
+    var count = 3;
+    if (request.Count > 0) count = request.Count;
+
     var openai = app.Services.GetService<IOpenAIService>() ?? throw new ApplicationException("OpenAI service is null");
 
     var result = await openai.Embeddings.CreateEmbedding(new EmbeddingCreateRequest
@@ -99,7 +128,7 @@ app.MapPost("/search", async (SearchRequest request) =>
         var similarities = cosine.Similarity(it.Embedding?.ToArray(), embedding.ToArray());
         searchResponseItems.Add(new SearchResponseItem(it.Id, it.Title, similarities));
     });
-    return searchResponseItems.OrderByDescending(it => it.Similarities).Take(request.Count);
+    return searchResponseItems.OrderByDescending(it => it.Similarities).Take(count);
 });
 
 

@@ -44,9 +44,13 @@ namespace WebApi
             return true;
         }
 
-        public static async Task<List<DocItem>> Load()
+        public static async Task<List<DocItem>> Load(string? filePath = null)
         {
-            var json = await File.ReadAllTextAsync(FilePath);
+            if (filePath == null)
+            {
+                filePath = FilePath;
+            }
+            var json = await File.ReadAllTextAsync(filePath);
             var items = JsonConvert.DeserializeObject<List<DocItem>>(json);
             return items;
         }

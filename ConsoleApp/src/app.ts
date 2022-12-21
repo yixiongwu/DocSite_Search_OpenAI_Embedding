@@ -22,7 +22,7 @@ class DocItem {
 }
 
 async function main() {
-    let docPath = process.env.DOC_PATH;
+    let docPath = process.env.DOC_PATH ?? "";
     let docItems: Array<DocItem> = new Array<DocItem>();
     walkDir(docPath, (fileName: string, filePath: string) => {
         if (path.extname(fileName).toLowerCase() == ".md") {
