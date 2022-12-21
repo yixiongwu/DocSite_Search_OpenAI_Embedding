@@ -1,0 +1,104 @@
+{
+	"info": {
+		"_postman_id": "63f427cf-94ca-4554-a352-110086d2a569",
+		"name": "DocSite_Search_OpenAI_Embedding",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16946407"
+	},
+	"item": [
+		{
+			"name": "embeddingDocItems",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:61274/embeddingDocItems",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "61274",
+					"path": [
+						"embeddingDocItems"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "search",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"QueryText\":\"How should I learn animations?\",\r\n    \"count\":5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:61274/search",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "61274",
+					"path": [
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "recommendations",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":3,\r\n    \"count\":5\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:61274/recommendations",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "61274",
+					"path": [
+						"recommendations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "analyzingDocItems",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:61274/analyzingDocItems",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "61274",
+					"path": [
+						"analyzingDocItems"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

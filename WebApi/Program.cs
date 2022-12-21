@@ -108,6 +108,36 @@ app.MapGet("/embeddingDocItems", async () =>
     return items.Count;
 });
 
+app.MapPost("/recommendations", async (RecommendationRequest request) =>
+{
+    var count = 3;
+    if (request.Count > 0) count = request.Count;
+
+    // Load the doc site from disk
+    var items = await Util.Load();
+
+    ConcurrentBag<RecommendationResponseItem> recommendationResponseItems = new ConcurrentBag<RecommendationResponseItem>();
+    Cosine cosine = new Cosine();
+
+    var item = items.FirstOrDefault(it => it.Id == request.id);
+    if (item != null)
+    {
+        // Parallel execution to maximize the use of multi-core CPUs
+        items.AsParallel().ForAll(it =>
+        {
+            // Calculate the distance between two Embeddings
+            var distance = cosine.Distance(it.Embedding?.ToArray(), item.Embedding?.ToArray());
+            recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.Title, distance));
+        });
+        return new Recommendation(item.Id, item.Title,
+            recommendationResponseItems.OrderByDescending(it => it.Distance).Take(count).ToList());
+    }
+    else
+    {
+        return null;
+    }
+});
+
 app.MapPost("/search", async (SearchRequest request) =>
 {
     var count = 3;
