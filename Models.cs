@@ -19,5 +19,5 @@
 
     public record SearchRequest(string QueryText, int Count);
 
-    public record SearchResponseItem(string Title, string Content, double Similarities);
+    public record SearchResponseItem(int Id, string Title, double Similarities);
 }

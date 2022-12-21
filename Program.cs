@@ -86,14 +86,18 @@ app.MapPost("/search", async (SearchRequest request) =>
 
     var embedding = result.Data.First().Embedding;
 
+    // Load the doc site from disk
     var items = await Util.Load();
 
     ConcurrentBag<SearchResponseItem> searchResponseItems = new ConcurrentBag<SearchResponseItem>();
     Cosine cosine = new Cosine();
+
+    // Parallel execution to maximize the use of multi-core CPUs
     items.AsParallel().ForAll(it =>
     {
+        // Calculate the distance between two Embeddings
         var similarities = cosine.Similarity(it.Embedding?.ToArray(), embedding.ToArray());
-        searchResponseItems.Add(new SearchResponseItem(it.Title, it.Content, similarities));
+        searchResponseItems.Add(new SearchResponseItem(it.Id, it.Title, similarities));
     });
     return searchResponseItems.OrderByDescending(it => it.Similarities).Take(request.Count);
 });
