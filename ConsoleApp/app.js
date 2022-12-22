@@ -1,20 +1,28 @@
+import { promisify } from "util";
+import path, { resolve } from "path";
 import fs from "fs";
-import path from "path";
+
+import dotenv from "dotenv";
 import { read } from "to-vfile";
 import { unified } from "unified";
-import dotenv from "dotenv";
-import { visit, Test, Visitor } from "unist-util-visit";
+import { visit } from "unist-util-visit";
 import remarkParse from "remark-parse";
 import remarkStringify from "remark-stringify";
 
+const readdir = promisify(fs.readdir);
+const stat = promisify(fs.stat);
+
 dotenv.config();
 
-function walkDir(dir, callback) {
-  fs.readdirSync(dir).forEach((f) => {
-    let dirPath = path.join(dir, f);
-    let isDirectory = fs.statSync(dirPath).isDirectory();
-    isDirectory ? walkDir(dirPath, callback) : callback(f, path.join(dir, f));
-  });
+async function getFiles(dir) {
+  const subdirs = await readdir(dir);
+  const files = await Promise.all(
+    subdirs.map(async (subdir) => {
+      const res = resolve(dir, subdir);
+      return (await stat(res)).isDirectory() ? getFiles(res) : res;
+    })
+  );
+  return files.reduce((a, f) => a.concat(f), []);
 }
 
 async function visitAsync(tree, matcher, asyncVisitor) {
@@ -31,24 +39,39 @@ async function visitAsync(tree, matcher, asyncVisitor) {
 }
 
 async function visitAndExtractContent(AST) {
-  let texts = [];
+  const type = "text";
+  let title = "";
+  let content = "";
   await visitAsync(AST, null, async (node) => {
-    if (
-      (node.type === "text" || node.type === "html") &&
-      node.value != "\n" &&
-      node.value.length > 1
-    ) {
-      // translateParam.Text = node.value;
-      // let translatedText = await translateAsync(translateParam);
-      // node.value = translatedText;
-      texts.push(node.value);
+    if (node.type === type && node.value) {
+      let text = node.value;
+      if (text.startsWith("title:")) {
+        title = text.substr(5);
+      } else {
+        content += text;
+      }
     }
   });
-  return texts.join("\n");
+  /*
+  'root',
+  'thematicBreak',
+  'heading',
+  'paragraph',
+  'inlineCode',
+  'html',
+  'text',
+  'strong',
+  'list',
+  'listItem',
+  'image',
+  'code'
+  */
+  return [title, content];
 }
 
 class DocItem {
-  constructor(title, content) {
+  constructor(fileName, title, content) {
+    this.FileName = fileName;
     this.Title = title;
     this.Content = content;
   }
@@ -64,15 +87,20 @@ async function main() {
   const processor = unified().use(remarkParse).use(remarkStringify);
 
   let docItems = [];
-  walkDir(docPath, async (fileName, filePath) => {
-    if (path.extname(fileName).toLowerCase() == ".md") {
-      const file = await read(filePath);
-      const result = processor.parse(file);
-      let AST = await processor.run(result);
-      let content = await visitAndExtractContent(AST);
-      docItems.push(new DocItem(path.basename(fileName), content));
-    }
-  });
+  let filePaths = await getFiles(docPath);
+
+  await Promise.all(
+    filePaths.map(async (filePath) => {
+      if (path.extname(filePath).toLowerCase() == ".md") {
+        const file = await read(filePath);
+        const result = processor.parse(file);
+        let AST = await processor.run(result);
+        let [title, content] = await visitAndExtractContent(AST);
+        docItems.push(new DocItem(path.basename(filePath), title, content));
+      }
+    })
+  );
+
   let jsonStr = JSON.stringify(docItems);
   fs.writeFileSync(".//docItems.json", jsonStr);
 }
