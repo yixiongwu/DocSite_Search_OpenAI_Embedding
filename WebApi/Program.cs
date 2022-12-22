@@ -86,6 +86,7 @@ app.MapGet("/embeddingDocItems", async () =>
 {
     var openai = app.Services.GetService<IOpenAIService>() ?? throw new ApplicationException("OpenAI service is null");
 
+    // If file is not exist, we need to generate it through the console app
     var items = await Util.Load(@"../ConsoleApp/docItems.json");
     var input = items.Select(it => it.Content.Substring(0, it.Content.Length > 8000 ? 8000 : it.Content.Length)).ToList();
     var result = await openai.Embeddings.CreateEmbedding(new EmbeddingCreateRequest
