@@ -96,7 +96,8 @@ async function main() {
         const result = processor.parse(file);
         let AST = await processor.run(result);
         let [title, content] = await visitAndExtractContent(AST);
-        docItems.push(new DocItem(path.basename(filePath), title, content));
+        let fileName = filePath.substr(process.env.DOC_PATH.length);
+        docItems.push(new DocItem(fileName, title, content));
       }
     })
   );

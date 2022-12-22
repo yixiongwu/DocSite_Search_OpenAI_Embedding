@@ -2,14 +2,16 @@
 {
     public class DocItem
     {
-        public DocItem(int id, string title, string content)
+        public DocItem(int id, string fileName, string title, string content)
         {
             Id = id;
+            FileName = fileName;
             Title = title;
             Content = content;
         }
 
         public int Id { get; set; }
+        public string FileName { get; set; }
         public string Title { get; set; }
         public string Content { get; set; }
         public List<double>? Embedding { get; set; }
