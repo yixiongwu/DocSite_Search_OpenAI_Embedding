@@ -8,6 +8,8 @@ using Accord.Math.Distances;
 using System.Collections.Concurrent;
 
 const string Model = "text-embedding-ada-002";
+const int LengthLimit = 8200;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -77,18 +79,23 @@ app.MapGet("/analyzingDocItems", async () =>
     return new
     {
         items.Count,
-        CountMoreThan8000 = items.Count(it => it.Content.Length >= 8000),
-        CountMoreThan8000Ratios = items.Where(it => it.Content.Length >= 8000).Select(it => Math.Round((decimal)it.Content.Length / 8000, 2)).ToList()
+        LengthLimit,
+        CountMoreThanLengthLimit = items.Count(it => it.Content.Length >= LengthLimit),
+        CountMoreThanLengthLimitRatios = items.Where(it => it.Content.Length >= LengthLimit).Select(it => Math.Round((decimal)it.Content.Length / LengthLimit, 2)).ToList()
     };
 });
 
 app.MapGet("/embeddingDocItems", async () =>
 {
+    
     var openai = app.Services.GetService<IOpenAIService>() ?? throw new ApplicationException("OpenAI service is null");
 
     // If file is not exist, we need to generate it through the console app
     var items = await Util.Load(@"../ConsoleApp/docItems.json");
-    var input = items.Select(it => it.Content.Substring(0, it.Content.Length > 8000 ? 8000 : it.Content.Length)).ToList();
+    var input = items.Where(it => it.Content.Length > 0)
+    .Select(it => it.Content.Substring(0, it.Content.Length > LengthLimit ? LengthLimit : it.Content.Length))
+    .ToList();
+
     var result = await openai.Embeddings.CreateEmbedding(new EmbeddingCreateRequest
     {
         Input = input,
@@ -127,12 +134,16 @@ app.MapPost("/recommendations", async (RecommendationRequest request) =>
         items.AsParallel().ForAll(it =>
         {
             // Calculate the distance between two Embeddings
-            var distance = cosine.Distance(it.Embedding?.ToArray(), item.Embedding?.ToArray());
-            recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.Title, distance));
+            var distance = cosine.Distance(item.Embedding?.ToArray(), it.Embedding?.ToArray());
+            recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.FileName, it.Title, distance));
         });
-        return new Recommendation(item.Id,
+        return new Recommendation(item.Id, item.FileName,
             item.Title,
-            recommendationResponseItems.Where(it => !it.Title.Contains("open-cloud")).OrderByDescending(it => it.Distance).Take(count).ToList());
+            recommendationResponseItems
+            .Where(it => it.Id != item.Id)
+            .OrderBy(it => it.Distance)
+            .Take(count)
+            .ToList());
     }
     else
     {
@@ -169,7 +180,7 @@ app.MapPost("/search", async (SearchRequest request) =>
     {
         // Calculate the distance between two Embeddings
         var similarities = cosine.Similarity(it.Embedding?.ToArray(), embedding.ToArray());
-        searchResponseItems.Add(new SearchResponseItem(it.Id, it.Title, similarities));
+        searchResponseItems.Add(new SearchResponseItem(it.Id, it.FileName, it.Title, similarities));
     });
     return searchResponseItems.OrderByDescending(it => it.Similarities).Take(count);
 });
