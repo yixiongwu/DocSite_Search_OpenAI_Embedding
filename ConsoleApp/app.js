@@ -46,7 +46,7 @@ async function visitAndExtractContent(AST) {
     if (node.type === type && node.value) {
       let text = node.value;
       if (text.startsWith("title:")) {
-        title = text.substr(5);
+        title = text.substr(6);
       } else {
         content += text;
       }
@@ -70,9 +70,10 @@ async function visitAndExtractContent(AST) {
 }
 
 class DocItem {
-  constructor(fileName, title, content) {
+  constructor(fileName, title, category, content) {
     this.FileName = fileName;
     this.Title = title;
+    this.Category = category;
     this.Content = content;
   }
 }
@@ -98,7 +99,8 @@ async function main() {
         let [title, content] = await visitAndExtractContent(AST);
         if (content) {
           let fileName = filePath.substr(process.env.DOC_PATH.length);
-          docItems.push(new DocItem(fileName, title, content));
+          let category = fileName.split(path.sep)[1];
+          docItems.push(new DocItem(fileName, title, category, content));
         } else {
           console.log(filePath);
         }

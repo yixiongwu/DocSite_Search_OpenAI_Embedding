@@ -87,7 +87,7 @@ app.MapGet("/analyzingDocItems", async () =>
 
 app.MapGet("/embeddingDocItems", async () =>
 {
-    
+
     var openai = app.Services.GetService<IOpenAIService>() ?? throw new ApplicationException("OpenAI service is null");
 
     // If file is not exist, we need to generate it through the console app
@@ -135,7 +135,7 @@ app.MapPost("/recommendations", async (RecommendationRequest request) =>
         {
             // Calculate the distance between two Embeddings
             var distance = cosine.Distance(item.Embedding?.ToArray(), it.Embedding?.ToArray());
-            recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.FileName, it.Title, distance));
+            recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.FileName, it.Title, it.Category, distance));
         });
         return new Recommendation(item.Id, item.FileName,
             item.Title,
@@ -180,7 +180,7 @@ app.MapPost("/search", async (SearchRequest request) =>
     {
         // Calculate the distance between two Embeddings
         var similarities = cosine.Similarity(it.Embedding?.ToArray(), embedding.ToArray());
-        searchResponseItems.Add(new SearchResponseItem(it.Id, it.FileName, it.Title, similarities));
+        searchResponseItems.Add(new SearchResponseItem(it.Id, it.FileName, it.Title, it.Category, similarities));
     });
     return searchResponseItems.OrderByDescending(it => it.Similarities).Take(count);
 });
