@@ -135,10 +135,11 @@ app.MapPost("/recommendations", async (RecommendationRequest request) =>
         {
             // Calculate the distance between two Embeddings
             var distance = cosine.Distance(item.Embedding?.ToArray(), it.Embedding?.ToArray());
-            recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.FileName, it.Title, it.Category, distance));
+            recommendationResponseItems.Add(new RecommendationResponseItem(it.Id, it.FileName, it.Title, it.Category, distance, it.Content.Summary(200)));
         });
         return new Recommendation(item.Id, item.FileName,
             item.Title,
+            item.Content.Summary(),
             recommendationResponseItems
             .Where(it => it.Id != item.Id)
             .OrderBy(it => it.Distance)
@@ -180,7 +181,7 @@ app.MapPost("/search", async (SearchRequest request) =>
     {
         // Calculate the distance between two Embeddings
         var similarities = cosine.Similarity(it.Embedding?.ToArray(), embedding.ToArray());
-        searchResponseItems.Add(new SearchResponseItem(it.Id, it.FileName, it.Title, it.Category, similarities));
+        searchResponseItems.Add(new SearchResponseItem(it.Id, it.FileName, it.Title, it.Category, similarities, it.Content.Summary(200)));
     });
     return searchResponseItems.OrderByDescending(it => it.Similarities).Take(count);
 });

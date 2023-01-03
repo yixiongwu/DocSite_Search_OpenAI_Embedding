@@ -23,11 +23,11 @@
 
     public record SearchRequest(string QueryText, int Count);
 
-    public record SearchResponseItem(int Id, string FileName, string Title, string Category, double Similarities);
+    public record SearchResponseItem(int Id, string FileName, string Title, string Category, double Similarities, string Summary);
 
     public record RecommendationRequest(int id, int Count);
 
-    public record Recommendation(int Id, string FileName, string Title, List<RecommendationResponseItem> Recommendations);
-    public record RecommendationResponseItem(int Id, string FileName, string Title, string Category, double Distance);
+    public record Recommendation(int Id, string FileName, string Title, string Summary, List<RecommendationResponseItem> Recommendations);
+    public record RecommendationResponseItem(int Id, string FileName, string Title, string Category, double Distance, string Summary);
 
 }

@@ -54,5 +54,12 @@ namespace WebApi
             var items = JsonConvert.DeserializeObject<List<DocItem>>(json);
             return items;
         }
+
+        public static string Summary(this string content, int length = 200)
+        {
+            if (content.Length > length)
+                return content.Substring(0, length);
+            return content;
+        }
     }
 }
