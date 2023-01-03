@@ -37,7 +37,8 @@ async function visitAsync(tree, matcher, asyncVisitor) {
 
   return tree;
 }
-
+// \\education\\build-it-play-it-island-of-move\\animations-and-feedback.md
+// \\education\\lesson-plans\\animate-in-roblox-lesson.md
 async function visitAndExtractContent(AST) {
   const type = "text";
   let title = "";
@@ -46,7 +47,11 @@ async function visitAndExtractContent(AST) {
     if (node.type === type && node.value) {
       let text = node.value;
       if (text.startsWith("title:")) {
-        title = text.substr(6);
+        title = text.substring(6);
+        if (title.indexOf("\n") > 0) {
+          title = title.substring(0, title.indexOf("\n"))
+        }
+        title = title.trim()
       } else {
         content += text;
       }
@@ -79,8 +84,10 @@ class DocItem {
 }
 
 async function main() {
-  let docPath =
-    process.env.DOC_PATH ?? "./creator-docs-internal/content/en-us/docs";
+  if (!process.env.DOC_PATH) {
+    throw new Error("DOC_PATH is empty");
+  }
+  let docPath = process.env.DOC_PATH
   if (!fs.existsSync(docPath)) {
     console.error(`${docPath} is not exist.`);
     return;
