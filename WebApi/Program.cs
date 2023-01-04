@@ -170,7 +170,7 @@ app.MapPost("/search", async (SearchRequest request) =>
 
     var embedding = result.Data.First().Embedding;
 
-    // Load the doc site from disk
+    // Load the doc site items(articles) from disk
     var items = await Util.Load();
 
     ConcurrentBag<SearchResponseItem> searchResponseItems = new ConcurrentBag<SearchResponseItem>();
